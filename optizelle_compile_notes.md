@@ -26,4 +26,4 @@ If you want to install the library on your computer:
 
 ## Compile as a third party inside a project
 
-* Move `optizelle/src/cmake` to `optizelle/cmake`.
+* Move `optizelle/src/cmake` to `<your_project_root>/cmake`.

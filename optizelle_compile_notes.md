@@ -1,24 +1,25 @@
-# Optizelle installation note
+# Optizelle compilation notes
 
-## Standalone compilation
+## Requirements
 
-
-``` bash
+ ``` bash
     brew install pkg-config
     brew install jsoncpp
     brew install lapack
     brew install openblas # if not installed alongside lapack
 ```
 
+## Standalone compilation
+
 then, the usual:
 
 ``` bash
-    mkdir build && cd build 
+    mkdir build && cd build
     cmake ..
     make -j 16
 ```
 
-If you want to install the library on your computer: 
+If you want to install the library on your computer:
 
 ``` bash
     make install

@@ -7,6 +7,15 @@
 
 ## Test run
 
+### Requirements for compiling Optizelle
+
+ ``` bash
+    brew install pkg-config
+    brew install jsoncpp
+    brew install lapack
+    brew install openblas # if not installed alongside lapack
+```
+
 ### Compilation
 
 ``` bash

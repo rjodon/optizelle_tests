@@ -20,7 +20,7 @@ struct MyObj : public Optizelle::ScalarValuedFunction<double, Optizelle::Rm> {
     // Evaluation
     double eval(const X::Vector &x) const {
         return sq(x[0] + 1.) + sq(x[1] + 1.);
-    } 
+    }
 
     // Gradient
     void grad(X::Vector const &x, X::Vector &grad) const {
@@ -71,12 +71,12 @@ struct MyIneq : public Optizelle::VectorValuedFunction<double, Optizelle::Rm, Op
 
 int main(int argc, char *argv[]) {
     // Read in the name for the input file
-    if (argc != 2)
-    {
-        std::cerr << "simple_inequality <parameters>" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    auto fname = argv[1];
+    // if (argc != 2)
+    // {
+    //     std::cerr << "simple_inequality <parameters>" << std::endl;
+    //     exit(EXIT_FAILURE);
+    // }
+    auto fname = "inputs/newton_cg.json" ;
 
     // Create a type shortcut
     using Optizelle::Rm;

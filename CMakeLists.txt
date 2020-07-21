@@ -18,3 +18,7 @@ message("--> JSONCPP INCLUDE: ${jsoncpp_h_dirs}")
 add_executable(main main.cc)
 target_include_directories(main PUBLIC ${optizel_h_dirs} ${jsoncpp_h_dirs})
 target_link_libraries (main PUBLIC Eigen3::Eigen optizelle_static)
+
+add_executable(rosenbrock rosenbrock.cc)
+target_include_directories(rosenbrock PUBLIC ${optizel_h_dirs} ${jsoncpp_h_dirs})
+target_link_libraries (rosenbrock PUBLIC Eigen3::Eigen optizelle_static)

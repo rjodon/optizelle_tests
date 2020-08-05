@@ -3,3 +3,6 @@ build*
 cmake-build*
 .vscode/*
 !.vscode/launch.json
+
+# Solution file
+solution.json

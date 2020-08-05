@@ -7,25 +7,62 @@
 #include "optizelle/vspaces.h"
 
 
+struct A {
+    double m_a;
+
+    A(double a) {
+        m_a = a;
+    }
+
+    double twice() {
+        return m_a * 2;
+    }
+};
+
+
+struct B: public A
+{
+    B(double b) : A(b) {
+        printf("ma inside B: %f \n", this->m_a);
+    }
+};
+
+struct C
+{
+    C(double c) : m_aaa(c) {
+        printf("mb inside C: %f \n", m_aaa.m_a);
+    }
+private:
+    A m_aaa;
+};
+
+
+
 // Squares its input
 template <typename T> T sq(T const &x) { return x * x; }
 
 // Define a simple objective where
 //
-// f(x,y)=(x+1)^2+(y+1)^2
+// f(x,y)=x^2+y^2
 //
 struct MyObj : public Optizelle::ScalarValuedFunction<double, Optizelle::Rm> {
     typedef Optizelle::Rm<double> X;
 
+    MyObj(double a, double b) {
+        auto m_a = a;
+        auto m_b = A(b);
+        printf("%f %f \n", m_a, m_b.twice());
+    }
+
     // Evaluation
     double eval(const X::Vector &x) const {
-        return sq(x[0] + 1.) + sq(x[1] + 1.);
+        return sq(x[0]) + sq(x[1]);
     }
 
     // Gradient
     void grad(X::Vector const &x, X::Vector &grad) const {
-        grad[0] = 2. * x[0] + 2.;
-        grad[1] = 2. * x[1] + 2.;
+        grad[0] = 2. * x[0];
+        grad[1] = 2. * x[1];
     }
 
     // Hessian-vector product
@@ -37,8 +74,10 @@ struct MyObj : public Optizelle::ScalarValuedFunction<double, Optizelle::Rm> {
 
 // Define simple inequalities
 //
-// h(x,y)= [ x + 2y >= 1 ]
-//         [ 2x + y >= 1 ]
+// h(x,y)= [ x + 2y >= 1  ]
+//         [ 2x + y >= 1  ]
+//         [ x      >= 0.5]
+//         [      y <  0.2]
 //
 struct MyIneq : public Optizelle::VectorValuedFunction<double, Optizelle::Rm, Optizelle::Rm> {
     typedef Optizelle::Rm<double> X;
@@ -46,21 +85,24 @@ struct MyIneq : public Optizelle::VectorValuedFunction<double, Optizelle::Rm, Op
 
     // y=h(x)
     void eval(X::Vector const &x, Y::Vector &y) const {
-        y[0] = x[0] + 2. * x[1] - 1.;
-        y[1] = 2. * x[0] + x[1] - 1.;
+        y[0] = x[0] + 2. * x[1] -1;
+        y[1] = 2. * x[0] + x[1] -1;
+        y[2] = x[0] - 0.5;
+        y[3] = x[1] * (-1.) + 0.2;
     }
 
     // y=h'(x)dx
     void p(X::Vector const &x, X::Vector const &dx, Y::Vector &y) const {
         y[0] = dx[0] + 2. * dx[1];
         y[1] = 2. * dx[0] + dx[1];
-
+        y[2] = dx[0];
+        y[3] = dx[1] * (-1.);
     }
 
     // z=h'(x)*dy
     void ps(X::Vector const &x, Y::Vector const &dy, X::Vector &z) const {
-        z[0] = dy[0] + 2. * dy[1];
-        z[1] = 2. * dy[0] + dy[1];
+        z[0] = dy[0] + 2. * dy[1] + dy[2] ;
+        z[1] = 2. * dy[0] + dy[1] - dy[3] ;
     }
 
     // z=(h''(x)dx)*dy
@@ -79,24 +121,27 @@ int main(int argc, char *argv[]) {
     // }
     auto fname = "inputs/newton_cg.json" ;
 
+    auto b = B(2.0);
+    auto c = C(4.0);
+
     // Create a type shortcut
     using Optizelle::Rm;
 
     // Generate an initial guess
-    auto x = std::vector<double>{2.1, 1.1};
+    auto x = std::vector<double>{2.1, 0.1};
 
     // Allocate memory for the inequality multipler
-    auto z = std::vector<double>(2);
+    auto z = std::vector<double>(4);
 
     // Create an optimization state
     Optizelle::InequalityConstrained<double, Rm, Rm>::State::t state(x, z);
 
     // Read the parameters from file
-    Optizelle::json::InequalityConstrained<double, Rm, Rm>::read(fname, state);
+    Optizelle::json::InequalityConstrained<double, Optizelle::Rm, Optizelle::Rm>::read(fname, state);
 
     // Create a bundle of functions
     Optizelle::InequalityConstrained<double, Rm, Rm>::Functions::t fns;
-    fns.f.reset(new MyObj);
+    fns.f.reset(new MyObj(10.0, 1.0));
     fns.h.reset(new MyIneq);
 
     // Solve the optimization problem
@@ -110,8 +155,7 @@ int main(int argc, char *argv[]) {
 
     // Print out the final answer
     std::cout << std::scientific << std::setprecision(16)
-                        << "The optimal point is: (" << state.x[0] << ',' << state.x[1]
-                        << ')' << std::endl;
+                        << "The optimal point is: (" << state.x[0] << ',' << state.x[1] << ')' << std::endl;
 
     // Write out the final answer to file
     Optizelle::json::InequalityConstrained<double, Rm, Rm>::write_restart(
